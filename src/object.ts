@@ -143,21 +143,16 @@ export function getObjectTraveler(visitor: {
 
 /**@description 获取一个树状 结构的travel函数 */
 export function getTreeTraveler<T extends TreeStructure = any>(target: T | T[]) {
-  return function traveler(callback: (node: T) => void) {
-    function travel(tar: T | T[]) {
-      if (Array.isArray(tar)) {
-        tar.forEach((element) => {
-          travel(element);
-        });
-      } else if (typeof tar === 'object') {
-        callback(tar);
-        if (tar.children?.length) {
-          travel(tar.children as T[]);
-        }
+  const _target = [target].flat() as T[];
+  return function traveler(callback: (node: T, parent: T | null) => void) {
+    _target.forEach((tar) => travel(tar, null));
+
+    function travel(tar: T, parent: T | null) {
+      callback(tar, parent);
+      if (tar.children?.length) {
+        (tar.children as T[]).forEach((t) => travel(t, tar));
       }
     }
-
-    travel(target);
   };
 }
 
@@ -298,9 +293,8 @@ export function camelCase2KababDeep<T extends Record<string, any> | undefined>(
     const key = convertKababToCamel(cur);
     return {
       ...pre,
-      [key]: Validator.isObject(source[cur])
-        ? convertCamelToKabab(source[cur])
-        : source[cur],
+      [key]:
+        Validator.isObject(source[cur]) ? convertCamelToKabab(source[cur]) : source[cur],
     };
   }, {} as ObjCamel2KababDeep<T>);
 }

@@ -1,6 +1,6 @@
 {
   "name": "@gislife/utils",
-  "version": "2.0.3",
+  "version": "2.0.6",
   "description": "",
   "type": "module",
   "main": "dist/index.cjs",
@@ -13,7 +13,7 @@
     "publish": "pnpm publish"
   },
   "dependencies": {
-    "@gislife/types": "workspace:*",
+    "@gislife/types": "^2.0.0",
     "axios": "^1.5.1",
     "async-validator": "4.2.5",
     "crypto-js": "4.2.0",
