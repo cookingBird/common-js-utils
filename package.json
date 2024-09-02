@@ -1,12 +1,12 @@
 {
-  "name": "@gislife/utils",
+  "name": "@dt/common-utils",
   "version": "2.0.6",
   "description": "",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "packageManager": "pnpm",
+  "packageManager": "pnpm@8.15.3",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "patch": "pnpm version patch",
