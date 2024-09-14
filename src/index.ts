@@ -1,4 +1,5 @@
-export * from './http';
+import queryParse from './queryParse';
+import queryStringfy from './queryStringfy';
 export * from './array';
 export * from './function';
 export * as array from './array';
@@ -17,3 +18,7 @@ export * from './browser';
 export * as browser from './browser';
 export * as Log from './log';
 
+export {
+  queryParse,
+  queryStringfy
+}

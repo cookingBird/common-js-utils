@@ -2,15 +2,15 @@ import type {
   TreeStructure,
   TwoDemeArrayUnion,
   NOOP,
-  ANYOP,
-  ParentStruce,
+} from '@gislife/types/tools';
+import type {
   ObjCamel2KababDeep,
   ObjKabab2CamelDeep,
-  ObjectOmit,
-} from '@gislife/types/tools';
+  ObjKabab2Camel,
+  ObjCamel2Kabab
+} from '@easy/common-types/src/Object';
 import { toArray } from './other';
 import * as Validator from './validator';
-import type { ObjKabab2Camel, ObjCamel2Kabab } from '@gislife/types/tools';
 
 /**@description omit some keys from object */
 export function objectOmit<
@@ -183,7 +183,7 @@ export function objectVKMap<T extends Record<PropertyKey, any> = any>(
 /**@description 树映射 */
 export function treeMap<T extends TreeStructure = {}, R extends Record<string, any> = {}>(
   obj: T | T[],
-  mapCb: (obj: T, level: number, array: TreeStructure<R>[], index: number) => R,
+  callback: (obj: T, level: number, array: TreeStructure<R>[], index: number) => R,
 ): TreeStructure<R>[] {
   function _mapTree(
     obj: T,
@@ -191,12 +191,13 @@ export function treeMap<T extends TreeStructure = {}, R extends Record<string, a
     array: TreeStructure<R>[] = [],
     index: number = 0,
   ) {
-    const res = mapCb(obj, level, array, index);
-    const children = (res.children ?? []) as T[];
-    children.map((child, index) =>
+    const res = callback(obj, level, array, index);
+    if (Array.isArray(res.children) && res.children.length) {
       // @ts-expect-error
-      _mapTree(child, level + 1, children, index),
-    );
+      res.children = (res.children as T[]).map((child, index) =>
+        _mapTree(child, level + 1, res.children, index),
+      );
+    }
     return res;
   }
   const _obj = toArray(obj);
