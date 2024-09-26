@@ -31,11 +31,6 @@ export function objectOmit<
   }, {} as any);
 }
 
-type Raw = {
-  a: 10;
-  b: 20;
-};
-type FlattenTwoDeme<T extends any[] | any[][]> = T extends unknown[][] ? [...T[0]] : T;
 
 /**@description pick一些对象的某些字段值 */
 export function objectPick<
@@ -142,15 +137,15 @@ export function getObjectTraveler(visitor: {
 }
 
 /**@description 获取一个树状 结构的travel函数 */
-export function getTreeTraveler<T extends TreeStructure = any>(target: T | T[]) {
+export function getTreeTraveler<T extends TreeStructure = any>(target: T | T[], /**@description 子级节点key */ childrenKey = 'children') {
   const _target = [target].flat() as T[];
-  return function traveler(callback: (node: T, parent: T | null) => void) {
-    _target.forEach((tar) => travel(tar, null));
+  return function traveler(callback: (node: T, index: number, arr: T[], parent: T | null) => void) {
+    _target.forEach((tar, index, arr) => travel(tar, index, arr, null));
 
-    function travel(tar: T, parent: T | null) {
-      callback(tar, parent);
-      if (tar.children?.length) {
-        (tar.children as T[]).forEach((t) => travel(t, tar));
+    function travel(tar: T, index: number, arr: T[], parent: T | null) {
+      callback(tar, index, arr, parent);
+      if (tar[childrenKey]?.length) {
+        (tar[childrenKey] as T[]).forEach((t, ind, arr) => travel(t, ind, arr, tar));
       }
     }
   };
@@ -183,26 +178,30 @@ export function objectVKMap<T extends Record<PropertyKey, any> = any>(
 /**@description 树映射 */
 export function treeMap<T extends TreeStructure = {}, R extends Record<string, any> = {}>(
   obj: T | T[],
-  callback: (obj: T, level: number, array: TreeStructure<R>[], index: number) => R,
+  callback: (obj: T, level: number, index: number, array: TreeStructure<R>[], parent: T | null) => R,
+  /**@description 子级节点key */
+  childrenKey = 'children'
 ): TreeStructure<R>[] {
   function _mapTree(
     obj: T,
     level: number = 0,
-    array: TreeStructure<R>[] = [],
     index: number = 0,
+    array: TreeStructure<R>[] = [],
+    parent: T | null
   ) {
-    const res = callback(obj, level, array, index);
-    if (Array.isArray(res.children) && res.children.length) {
+    const res = callback(obj, level, index, array, parent);
+    if (Array.isArray(obj[childrenKey]) && obj[childrenKey].length) {
       // @ts-expect-error
-      res.children = (res.children as T[]).map((child, index) =>
-        _mapTree(child, level + 1, res.children, index),
+      res[childrenKey] = (obj[childrenKey] as T[]).map((child, index, arr) =>
+        // @ts-expect-error
+        _mapTree(child, level + 1, arr, index, res),
       );
     }
     return res;
   }
   const _obj = toArray(obj);
   // @ts-expect-error
-  return _obj.map((val, index) => _mapTree(val, void 0, _obj, index));
+  return _obj.map((val, index, arr) => _mapTree(val, 0, index, arr, null));
 }
 
 /**@description 扁平化tree */

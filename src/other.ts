@@ -163,14 +163,22 @@ export function ensureInstance<T = any>(
     | 'requestAnimationFrame'
     | 'setTimeout'
     | 'requestIdleCallback' = 'requestAnimationFrame',
-  options: { timer?: number; timeout: number } = {
+  options: { timer?: number; step?: number; timeout: number, fallback?: () => void } = {
+    /**@deprecated */
     timer: 300,
     timeout: 3000,
   },
 ) {
-  const { timer, timeout } = options;
+  const { timer, timeout, step, fallback = () => { } } = options;
+  const _step = step || timer || 100;
+  let success = false;
+  return new Promise<T>((resolve, reject) => {
+    setTimeout(() => { if (success) return; reject('timeout'); fallback(); }, timeout);
+    _ensure(fn, resolve, type);
+  });
   function _ensure(_fn: typeof fn, callback: (value: any) => void, type: string) {
     if (_fn()) {
+      success = true;
       return callback(_fn());
     } else {
       if (type === 'requestAnimationFrame') {
@@ -182,7 +190,7 @@ export function ensureInstance<T = any>(
       if (type === 'setTimeout') {
         setTimeout(() => {
           _ensure(_fn, callback, type);
-        }, timer);
+        }, _step);
       }
 
       if (type === 'requestIdleCallback') {
@@ -190,16 +198,11 @@ export function ensureInstance<T = any>(
           () => {
             _ensure(_fn, callback, type);
           },
-          { timeout: timer },
+          { timeout: _step },
         );
       }
     }
   }
-
-  return new Promise<T>((resolve, reject) => {
-    setTimeout(() => reject('timeout'), timeout);
-    _ensure(fn, resolve, type);
-  });
 }
 
 /**@description 设置一个ctx中的某些字段值，支持.访问符 */
@@ -369,3 +372,9 @@ export function getValueCtx(context: Record<string, any>, path: string[]) {
   });
   return res as unknown as string;
 }
+
+export const replaceStar = (str: string | number, start = 2, end = 2) => {
+  const regex = new RegExp(`(?<=^\\d{${2}}).+(?=\\d{${2}})`, 'gi');
+  const res = String(str).replace(regex, '****');
+  return res;
+};

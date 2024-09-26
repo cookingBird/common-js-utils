@@ -91,10 +91,12 @@ export const Base64Util = {
 };
 
 export function injectScriptFile(url: string) {
+  if (!url || document.getElementById(url)) return;
   document.addEventListener('DOMContentLoaded', function () {
     // 创建 script 元素
     const scriptElement = document.createElement('script');
     scriptElement.src = url;
+    scriptElement.setAttribute('id', url);
     // 将 script 元素添加到页面的 head 或 body 元素中
     document.head.appendChild(scriptElement);
     // 或 document.body.appendChild(scriptElement);
@@ -102,13 +104,14 @@ export function injectScriptFile(url: string) {
 }
 
 export function injectCSSFile(url: string) {
+  if (!url || document.getElementById(url)) return;
   document.addEventListener('DOMContentLoaded', function () {
     // 创建 link 元素
     const linkElement = document.createElement('link');
     linkElement.rel = 'stylesheet';
     linkElement.type = 'text/css';
     linkElement.href = url;
-
+    linkElement.setAttribute('id', url);
     // 将 link 元素添加到页面的 head 元素中
     document.head.appendChild(linkElement);
   });
